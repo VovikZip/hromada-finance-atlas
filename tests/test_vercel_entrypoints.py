@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parent.parent
 
 class VercelEntrypointTests(TestCase):
     def test_api_routes_export_the_existing_handler(self) -> None:
-        for name in ("budget-name", "budget-search", "analyze-stream"):
+        for name in ("budget_name", "budget_search", "analyze_stream"):
             with self.subTest(route=name):
                 namespace = run_path(str(ROOT / "api" / f"{name}.py"))
-                self.assertIs(namespace["handler"], Handler)
+                self.assertTrue(issubclass(namespace["handler"], Handler))

@@ -92,7 +92,7 @@ class Handler(BaseHTTPRequestHandler):
                 return
             self.send_json({"report": report, "saved_at": date.fromtimestamp(latest.stat().st_mtime).isoformat()})
             return
-        if path == "/api/budget-name":
+        if path in {"/api/budget-name", "/api/budget_name"}:
             code = parse_qs(parsed.query).get("code", [""])[0]
             try:
                 identity = budget_identity(code)
@@ -107,7 +107,7 @@ class Handler(BaseHTTPRequestHandler):
                 return
             self.send_json({"budget_code": code, **identity})
             return
-        if path == "/api/budget-search":
+        if path in {"/api/budget-search", "/api/budget_search"}:
             query = parse_qs(parsed.query).get("q", [""])[0]
             try:
                 results = search_budgets(query)
@@ -130,7 +130,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_json({"error": "Сторінку не знайдено"}, 404)
 
     def do_POST(self) -> None:
-        if self.path not in {"/api/analyze", "/api/analyze-stream"}:
+        if self.path not in {"/api/analyze", "/api/analyze-stream", "/api/analyze_stream"}:
             self.send_json({"error": "Сторінку не знайдено"}, 404)
             return
         try:
@@ -142,7 +142,7 @@ class Handler(BaseHTTPRequestHandler):
         except (ValueError, UnicodeDecodeError, json.JSONDecodeError) as exc:
             self.send_json({"error": str(exc)}, 400)
             return
-        if self.path == "/api/analyze-stream":
+        if self.path in {"/api/analyze-stream", "/api/analyze_stream"}:
             self.send_response(200)
             self.send_header("Content-Type", "application/x-ndjson; charset=utf-8")
             self.send_header("Cache-Control", "no-store")

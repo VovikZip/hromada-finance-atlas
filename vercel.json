@@ -1,11 +1,14 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "vite",
+  "framework": null,
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "functions": {
-    "api/analyze-stream.py": {
-      "maxDuration": 300
-    }
-  }
+    "api/analyze_stream.py": { "maxDuration": 60 }
+  },
+  "rewrites": [
+    { "source": "/api/budget-name", "destination": "/api/budget_name" },
+    { "source": "/api/budget-search", "destination": "/api/budget_search" },
+    { "source": "/api/analyze-stream", "destination": "/api/analyze_stream" }
+  ]
 }

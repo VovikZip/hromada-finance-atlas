@@ -82,9 +82,11 @@ class BudgetTests(unittest.TestCase):
             'katottg': 'UA71060210000032972',
             'directory_url': 'https://api.openbudget.gov.ua/items/BUDG?dateFrom=2026-11-15',
             'directory_date': '2026-11-15',
-        }), patch('func.hromada_atlas.budget_csv', side_effect=[
-            (incomes, 'income-url'), (expenses, 'expense-url'), (programs, 'program-url')
-        ]):
+        }), patch('func.hromada_atlas.budget_csv', side_effect=lambda _code, _year, item, classification=None: {
+            ('INCOMES', None): (incomes, 'income-url'),
+            ('EXPENSES', 'ECONOMIC'): (expenses, 'expense-url'),
+            ('EXPENSES', 'PROGRAM'): (programs, 'program-url'),
+        }[(item, classification)]):
             report = build_report('2357400000', 2026, [], None, None,
                                   progress=lambda step, message: steps.append(step))
         self.assertEqual(report['monthly'][0]['income_minus_expense_uah'], Decimal('40'))

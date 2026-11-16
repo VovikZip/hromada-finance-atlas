@@ -13,6 +13,7 @@ import re
 import sys
 import time
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date, timedelta
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
@@ -268,12 +269,23 @@ def build_report(
         if progress:
             progress(step, message)
 
-    report_progress("incomes", "Отримуємо фактичні доходи з OpenBudget…")
-    incomes, income_url = budget_csv(budget_code, year, "INCOMES")
-    report_progress("economic", "Отримуємо видатки за економічною класифікацією…")
-    economic, economic_url = budget_csv(budget_code, year, "EXPENSES", "ECONOMIC")
-    report_progress("programs", "Отримуємо видатки за бюджетними програмами…")
-    programs, program_url = budget_csv(budget_code, year, "EXPENSES", "PROGRAM")
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        report_progress("incomes", "Отримуємо фактичні доходи з OpenBudget…")
+        income_future = executor.submit(budget_csv, budget_code, year, "INCOMES")
+        report_progress("economic", "Отримуємо видатки за економічною класифікацією…")
+        economic_future = executor.submit(budget_csv, budget_code, year, "EXPENSES", "ECONOMIC")
+        report_progress("programs", "Отримуємо видатки за бюджетними програмами…")
+        program_future = executor.submit(budget_csv, budget_code, year, "EXPENSES", "PROGRAM")
+        identity_future = executor.submit(budget_identity, budget_code)
+        incomes, income_url = income_future.result()
+        economic, economic_url = economic_future.result()
+        programs, program_url = program_future.result()
+        try:
+            identity = identity_future.result()
+            identity_error = None
+        except BudgetDirectoryError as exc:
+            identity = None
+            identity_error = exc
 
     report_progress("calculation", "Рахуємо місячні суми та звіряємо підсумки…")
     income_index, income_names = cumulative_index(incomes, year, budget_code, "COD_INCO", "NAME_INC")
@@ -291,11 +303,8 @@ def build_report(
         + income_warnings + economic_warnings + program_warnings
     )
     report_progress("identity", "Перевіряємо назву бюджету в офіційному довіднику…")
-    try:
-        identity = budget_identity(budget_code)
-    except BudgetDirectoryError as exc:
-        identity = None
-        warnings.append(f"Не вдалося підтвердити назву бюджету: {exc}")
+    if identity_error is not None:
+        warnings.append(f"Не вдалося підтвердити назву бюджету: {identity_error}")
     if identity is None and not any("назву бюджету" in warning for warning in warnings):
         warnings.append("Код бюджету відсутній в актуальному довіднику OpenBudget; назву не підтверджено")
     income_totals = total_by_month(income_detail)
