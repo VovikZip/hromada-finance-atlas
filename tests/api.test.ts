@@ -62,3 +62,13 @@ test("community search sends an encoded name and reads candidate budgets", async
     globalThis.fetch = originalFetch;
   }
 });
+
+test("analysis explains a missing deployed API instead of showing a JSON parsing error", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response("Not Found", { status: 404, headers: { "Content-Type": "text/plain" } });
+  try {
+    await assert.rejects(analyzeBudget(request, () => {}), /Серверний API не знайдено/);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});

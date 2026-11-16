@@ -81,7 +81,7 @@ function App() {
   const [detailSearch, setDetailSearch] = useState("");
   const [transactionSearch, setTransactionSearch] = useState("");
   const [lookup, setLookup] = useState<LookupState>({ code: "", state: "idle", data: null });
-  const [runStatus, setRunStatus] = useState("Потрібен інтернет для нового аналізу.");
+  const [runStatus, setRunStatus] = useState("Оберіть громаду або введіть код бюджету, щоб почати.");
   const [runError, setRunError] = useState(false);
   const [busy, setBusy] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState<AnalysisProgress | null>(null);
@@ -243,7 +243,7 @@ function App() {
     setWithSpending(Boolean(trimmedPayer));
     setBusy(true);
     setRunError(false);
-    setRunStatus("Встановлюємо з’єднання з локальним сервером…");
+    setRunStatus("Встановлюємо з’єднання з сервером аналізу…");
     try {
       const result = await analyzeBudget({
         budget_code: budgetCode.trim(), year, payer_edrpous: trimmedPayer ? [trimmedPayer] : [],
@@ -415,7 +415,7 @@ function App() {
           <section className="panel info-panel"><p className="eyebrow">Як рахували</p><h3>Методика й межі</h3><ol className="method-list"><li>Завантажуємо фактичні доходи та видатки за кодом бюджету з OpenBudget.</li><li>Місячний факт = накопичений факт цього місяця мінус накопичений факт попереднього.</li><li>Залишок* = доходи мінус видатки лише за обраний місяць; це не залишок на рахунку.</li><li>Звіряємо фонди та підсумки за бюджетними програмами й КЕКВ.</li></ol><p className="source-note">Що ще не охоплено:</p><ul className="limit-list">{(shownReport.coverage?.limitations || []).map((note) => <li key={note}>{note}</li>)}</ul></section>
         </div><section className="panel info-panel warnings-panel"><p className="eyebrow">Контроль даних</p><h3>Попередження з розрахунків</h3><ul>{(shownReport.warnings?.length ? shownReport.warnings : ["Звірка не виявила попереджень."]).map((note, index) => <li key={`${index}-${note}`}>{note}</li>)}</ul></section></section>
       </section>}
-      <footer>Hromada Finance Atlas · Локальний прототип · Дані не змінюються вручну</footer>
+      <footer>Hromada Finance Atlas · Прототип · Джерела наведено в кожному звіті</footer>
     </main>
   </>;
 }

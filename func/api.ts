@@ -7,7 +7,13 @@ export class ApiError extends Error {
 }
 
 async function readJson<T>(response: Response): Promise<T> {
-  const result: T & { error?: string } = await response.json();
+  let result: T & { error?: string };
+  try {
+    result = await response.json();
+  } catch {
+    if (response.status === 404) throw new Error("Серверний API не знайдено (HTTP 404). Перевірте розгортання сайту.");
+    throw new Error(`Сервер повернув неочікувану відповідь (HTTP ${response.status}).`);
+  }
   if (!response.ok) {
     throw new ApiError(result.error || `HTTP ${response.status}`, response.status);
   }
